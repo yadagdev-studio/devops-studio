@@ -18,6 +18,5 @@ jobs:
           pwd
       - name: Deploy hello-web via docker compose
         run: |
-          cd /home/chronos/apps/hello-web
-          docker compose pull || true
+          cd /home/chronos/workspace/apps/hello-web
           docker compose up -d
