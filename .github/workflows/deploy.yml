@@ -16,3 +16,28 @@ jobs:
           hostname
           echo "Current directory:"
           pwd
+
+      - name: Healthcheck (proxy + delay-api)
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="http://localhost:8081"
+          echo "Checking ${base}/healthz ..."
+          echo "Checking ${base}/delay-api/healthz ..."
+          echo "Retry: Countermeasures for vibration immediately after startup..."
+          for i in {1..30}; do
+            if curl -fsS "${base}/healthz" >/dev/null && curl -fsS "${base}/delay-api/healthz" >/dev/null; then
+              echo "Healthcheck OK"
+              exit 0
+            fi
+            echo "Healthcheck retry ${i}/30 ..."
+            sleep 2
+          done
+          echo "Healthcheck FAILED"
+          echo "--- docker compose ps ---"
+          docker compose -f docker/proxy/docker-compose.proxy.yaml ps || true
+          echo "--- docker compose logs (proxy) ---"
+          docker compose -f docker/proxy/docker-compose.proxy.yaml logs --tail=200 devops-proxy || true
+          echo "--- docker compose logs (delay-api) ---"
+          docker compose -f /home/chronos/workspace/apps/delay-api/docker-compose.yaml logs --tail=200 delay-api || true
+          exit 1
