@@ -6,7 +6,7 @@ on:
       - main # main にpushされたら自動デプロイ
 jobs:
   deploy:
-    runs-on: self-hosted
+    runs-on: [self-hosted, Linux, X64]
     steps:
       - name: Checkout devops-studio
         uses: actions/checkout@v4
@@ -16,7 +16,3 @@ jobs:
           hostname
           echo "Current directory:"
           pwd
-      - name: Deploy hello-web via docker compose
-        run: |
-          cd /home/chronos/workspace/apps/hello-web
-          echo "docker compose up -dする"
