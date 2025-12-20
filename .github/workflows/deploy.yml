@@ -40,6 +40,14 @@ jobs:
         run: |
           cd docker/proxy
           docker compose -f docker-compose.proxy.yaml up -d
+
+      - name: Apply nginx config (test + reload)
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd docker/proxy
+          docker compose -f docker-compose.proxy.yaml exec -T devops-proxy nginx -t
+          docker compose -f docker-compose.proxy.yaml exec -T devops-proxy nginx -s reload
       - name: Healthcheck (proxy + delay-api)
         shell: bash
         run: |
