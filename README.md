@@ -95,3 +95,25 @@ curl -i http://localhost:8081/delay-api/healthz
  - conf.d/*.conf が空（server が無い） → listen できず接続リセットになる
  - apps/*.conf に server ブロックを書いてしまう（apps は location のみ）
  - compose 実行ディレクトリを間違えて別の mount を見ている
+
+ ## Runbook（最低限）
+
+### proxy の状態
+```
+cd docker/proxy
+docker compose -f docker-compose.proxy.yaml ps
+docker compose -f docker-compose.proxy.yaml logs --tail=200 devops-proxy
+```
+
+### delay-api の状態（AlmaLinux）
+```
+cd /home/chronos/workspace/apps/delay-api
+docker compose ps
+docker compose logs --tail=200 delay-api
+```
+
+### 疎通
+```
+curl -i http://localhost:8081/healthz
+curl -i http://localhost:8081/delay-api/healthz
+```
