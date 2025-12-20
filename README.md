@@ -117,3 +117,21 @@ docker compose logs --tail=200 delay-api
 curl -i http://localhost:8081/healthz
 curl -i http://localhost:8081/delay-api/healthz
 ```
+
+## ルーティング規約（Path-based）
+
+- 公開パスは `/<app-name>/`（末尾スラッシュあり）
+- `<app-name>` は原則 **リポジトリ名 = compose service名** に合わせる
+  - 例: repo `delay-api` → service `delay-api` → path `/delay-api/`
+- 各アプリは `/healthz` を提供する（Nginx 経由では `/<app-name>/healthz`）
+- アプリは `devops-edge` に参加し、host publish はしない（`expose` のみ）
+
+### nginx location テンプレ
+```nginx
+location /<app-name>/ {
+  include /etc/nginx/snippets/proxy_headers.conf;
+  # include /etc/nginx/snippets/proxy_common.conf;
+
+  proxy_pass http://<app-name>:<port>/;
+}
+```
