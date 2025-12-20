@@ -114,7 +114,7 @@ jobs:
           cd docker/proxy
           docker compose -f docker-compose.proxy.yaml up -d
 
-          base="http://localhost:8081"
+          base="http://localhost:80"
           for i in {1..30}; do
             if curl -fsS "${base}/healthz" >/dev/null && curl -fsS "${base}/delay-api/healthz" >/dev/null; then
               echo "Rollback healthcheck OK"
