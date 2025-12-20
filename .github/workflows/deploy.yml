@@ -53,14 +53,28 @@ jobs:
         run: |
           set -euo pipefail
           base="http://localhost:8081"
-          echo "Checking ${base}/healthz ..."
-          echo "Checking ${base}/delay-api/healthz ..."
-          echo "Retry: Countermeasures for vibration immediately after startup..."
+          CHECK_PATHS=(
+            "/healthz"
+            "/delay-api/healthz"
+          )
+
+          echo "Healthcheck targets:"
+          printf ' - %s\n' "${CHECK_PATHS[@]}"
+
           for i in {1..30}; do
-            if curl -fsS "${base}/healthz" >/dev/null && curl -fsS "${base}/delay-api/healthz" >/dev/null; then
+            ok=1
+            for p in "${CHECK_PATHS[@]}"; do
+              if ! curl -fsS "${base}${p}" >/dev/null; then
+                ok=0
+                break
+              fi
+            done
+
+            if [ "$ok" -eq 1 ]; then
               echo "Healthcheck OK"
               exit 0
             fi
+
             echo "Healthcheck retry ${i}/30 ..."
             sleep 2
           done
