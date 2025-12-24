@@ -8,8 +8,14 @@ services:
     environment:
       BASE: "http://devops-proxy"
       STATE_DIR: "/state"
+      HOST_ROOT: "/host"
+      BACKUP_DIR: "/backups"
+      LETSENCRYPT_DIR: "/letsencrypt"
     volumes:
       - ./state:/state
+      - /:/host:ro
+      - /home/chronos/backups/devops-studio:/backups:ro
+      - /etc/letsencrypt:/letsencrypt:ro
     networks:
       - devops-edge
 
