@@ -29,54 +29,62 @@ if [ -z "$newest_any" ]; then
   exit 0
 fi
 
-# 最新が古すぎないか（作られてない/止まってる検知）
+# 最新が古すぎないか（バックアップ停止の検知）
 newest_any_age="$(( now - $(mtime_epoch "$newest_any") ))"
 if [ "$newest_any_age" -gt "$STALE_SEC" ]; then
   echo "fail|backup|stale latest=$(basename "$newest_any") age=$(human_age "$newest_any_age") > $(human_age "$STALE_SEC") dir=${BACKUP_DIR}"
   exit 0
 fi
 
-# レース回避：MIN_AGE_SEC以上古い「候補」を探す（sha256の有無は後で判定）
+# MIN_AGE_SEC以上古くて、sha256があるものを選ぶ（race回避）
 eligible=""
 eligible_age=""
 for f in $(ls -1t "${BACKUP_DIR}"/devops-proxy-*.tar.gz 2>/dev/null); do
   age="$(( now - $(mtime_epoch "$f") ))"
   [ "$age" -ge "$MIN_AGE_SEC" ] || continue
+  [ -f "${f}.sha256" ] || continue
   eligible="$f"
   eligible_age="$age"
   break
 done
 
-# MIN_AGEを満たすものがまだ無い＝作成直後の窓
+# MIN_AGEを満たすバックアップがまだ無い場合は「skip」でOK（stale検知は上でやってる）
 if [ -z "$eligible" ]; then
   echo "ok|backup|too_new_skip latest=$(basename "$newest_any") age=$(human_age "$newest_any_age") < $(human_age "$MIN_AGE_SEC") dir=${BACKUP_DIR}"
   exit 0
 fi
 
 sha_file="${eligible}.sha256"
-if [ ! -f "$sha_file" ]; then
-  echo "fail|backup|sha256_missing file=$(basename "$eligible") dir=${BACKUP_DIR}"
+
+# ---- sha256検証（sha256ファイルが絶対パスを書いててもOK）----
+expected="$(awk 'NF{print $1; exit}' "$sha_file")"
+actual="$(sha256sum "$eligible" | awk '{print $1}')"
+
+if [ -z "$expected" ] || [ -z "$actual" ]; then
+  echo "fail|backup|sha256_read_error file=$(basename "$eligible")"
   exit 0
 fi
 
-# ---- sha256検証（絶対パスに依存しない） ----
-# .sha256 は「hash  /abs/path/to/file」になってることがあるので、hashだけ抜く
-base="$(basename "$eligible")"
-expected="$(
-  awk -v b="$base" '
-    NF>=1 {
-      # 行全体にbasenameが含まれる行があればそれを優先
-      if (index($0, b) > 0) { print $1; exit }
-    }
-    END { }
-  ' "$sha_file"
-)"
-
-# 見つからなければ先頭行の1カラム目にフォールバック
-if [ -z "$expected" ]; then
-  expected="$(awk 'NF>=1{print $1; exit}' "$sha_file")"
+if [ "$expected" != "$actual" ]; then
+  echo "fail|backup|sha256_mismatch file=$(basename "$eligible")"
+  exit 0
 fi
 
-actual="$(sha256sum "$eligible" | awk '{print $1}')"
+# サイズ
+size_bytes="$(stat -c %s "$eligible" 2>/dev/null || echo "")"
+size_h="$( [ -n "$size_bytes" ] && numfmt --to=iec --suffix=B "$size_bytes" 2>/dev/null || true )"
+size="${size_h:-${size_bytes:-unknown}}"
 
-if [ -z "$expected" ] || [ -z "$actual"]()
+# 日次サマリ（UTCで1日1回）
+if [ "$DAILY_SUMMARY" = "1" ]; then
+  today="$(date -u +%F)"
+  last="$(cat "$DAILY_FILE" 2>/dev/null || true)"
+  if [ "$today" != "$last" ]; then
+    echo "$today" > "$DAILY_FILE"
+    echo "ok|backup_daily|latest=$(basename "$eligible") age=$(human_age "$eligible_age") size=${size} dir=${BACKUP_DIR}"
+    exit 0
+  fi
+fi
+
+echo "ok|backup|latest=$(basename "$eligible") age=$(human_age "$eligible_age") size=${size} dir=${BACKUP_DIR}"
+exit 0
