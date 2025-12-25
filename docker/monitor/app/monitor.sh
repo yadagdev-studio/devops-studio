@@ -40,23 +40,26 @@ is_daily_key() {
 
 run_check_and_notify() {
   local key="$1" status="$2" msg="$3"
-  local f prev tag
-  f="$(state_file_for "$STATE_DIR" "$key")"
-  prev="$(get_state "$f")"
+  local tag
   tag="$(tag_for_key "$key")"
 
-  set_state "$f" "$status"
-
-  # daily系は「okでも毎回notify」(ただしcheck側が1日1回だけ返す前提)
+  # daily系：stateを触らない（状態遷移に影響させない）
+  # さらに通知は増やさない方針なので、dailyは明示ONのときだけ通知
   if is_daily_key "$key"; then
-    if [ "$status" = "ok" ]; then
-      notify "${tag} ✅ ${key}: ${msg}"
-    else
-      # dailyでfailが出るのは想定外だけど一応
-      notify "${tag} 🚨 ${key} FAILED: ${msg}"
+    if [ "${BACKUP_DAILY_SUMMARY:-0}" = "1" ]; then
+      if [ "$status" = "ok" ]; then
+        notify "${tag} 📝 ${key}: ${msg}"
+      else
+        notify "${tag} 🚨 ${key} FAILED: ${msg}"
+      fi
     fi
     return 0
   fi
+
+  local f prev
+  f="$(state_file_for "$STATE_DIR" "$key")"
+  prev="$(get_state "$f")"
+  set_state "$f" "$status"
 
   # 通常は状態遷移のみ通知
   if [ "$status" = "ok" ] && [ "$prev" = "fail" ]; then
@@ -83,12 +86,18 @@ check_http() {
 
 check_script() {
   local script="$1"
-  local out status key msg
+  local out
   out="$("$script")" || out="fail|unknown|script_error"
-  status="$(echo "$out" | cut -d'|' -f1)"
-  key="$(echo "$out" | cut -d'|' -f2)"
-  msg="$(echo "$out" | cut -d'|' -f3-)"
-  run_check_and_notify "$key" "$status" "$msg"
+
+  # ★複数行対応：1行ずつ処理
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    local status key msg
+    status="$(echo "$line" | cut -d'|' -f1)"
+    key="$(echo "$line" | cut -d'|' -f2)"
+    msg="$(echo "$line" | cut -d'|' -f3-)"
+    run_check_and_notify "$key" "$status" "$msg"
+  done <<< "$out"
 }
 
 # 初回実行
