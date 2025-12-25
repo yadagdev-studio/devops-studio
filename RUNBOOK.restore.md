@@ -1,4 +1,4 @@
-devops-proxy（nginx + certbot運用資産）の復旧手順。
+# devops-proxy（nginx + certbot運用資産）の復旧手順。
 
 ## 1) リポジトリ配置
 ```
@@ -37,7 +37,7 @@ sudo chmod -R go-rwx /etc/letsencrypt
 sudo chown root:root /etc/nginx/devops-studio.htpasswd 2>/dev/null || true
 sudo chmod 0640 /etc/nginx/devops-studio.htpasswd 2>/dev/null || true
 ```
-SELinuxで読めない症状が出た時だけ：
+#### SELinuxで読めない症状が出た時だけ：
 ```
 sudo restorecon -Rv /etc/letsencrypt /etc/nginx 2>/dev/null || true
 ```
