@@ -1,12 +1,12 @@
 # ARCHITECTURE
 ## 1. Purpose
-DevOps-Studio は、個人開発および小規模チーム向けの 「自宅マルチマシン + GitHub + ローカルLLM」を前提とした統合開発環境
+DevOps-Studio は、個人開発および小規模チーム向けの 「自宅マルチマシン + GitHub + ローカルLLM」を前提とした統合開発環境。
 
-このドキュメントは、新しくこの環境を触る自分（未来の自分を含む）やコラボレーターが、 **どのマシンで何をしていて、どこを変更すれば何が起きるか** を素早く理解できることを目的としている
+このドキュメントは、新しくこの環境を触る自分（未来の自分を含む）やコラボレーターが、 **どのマシンで何をしていて、どこを変更すれば何が起きるか** を素早く理解できることを目的としている。
 
-- コード管理・CI/CD・デプロイを一元化し、プロジェクトごとにバラバラな運用を避ける
-- self-hosted runner (AlmaLinux) を活用して、ローカル LAN 内だけで完結する開発フローを実現する
-- 将来的に複数の Web アプリ / API を同じ基盤上で運用できる状態を作る
+- コード管理・CI/CD・デプロイを一元化し、プロジェクトごとにバラバラな運用を避ける。
+- self-hosted runner (Chronos / AlmaLinux) を活用して、ローカル LAN 内だけで完結する開発フローを実現する。
+- 将来的に複数の Web アプリ / API を同じ基盤上で運用できる状態を作る。
 
 ---
 
@@ -49,18 +49,18 @@ DevOps-Studio は、個人開発および小規模チーム向けの 「自宅�
   - DevOps-Studio 自体のリポジトリ (`devops-studio`)
 
 - **DevOps-Studio**
-  - 共通ドキュメント (ARCHITECTURE, PROJECT_CHARTER, Coding Guidelines)
+  - 共通ドキュメント (ARCHITECTURE, PROJECT_CHARTER)
   - CI / CD テンプレート (`templates/ci/*.yml`)
   - Docker Compose テンプレート (`templates/docker-compose.*.yml`)
 
 - **アプリケーションリポジトリ**
   - 例: `todo-auth-app`, `some-api`, etc.
-  - 各リポで devops-studio のテンプレートをコピー/カスタマイズして利用
+  - 各リポで devops-studio のテンプレートをコピー/カスタマイズして利用。
 
 ---
 
-## 4. Self-hosted Runner (AlmaLinux)
-運用サーバーであるAlmaLinux 上に GitHub Actions の self-hosted runner を配置し、`runs-on: self-hosted` のジョブをすべて AlmaLinux で処理する。
+## 4. Self-hosted Runner (Chronos / AlmaLinux)
+運用サーバーであるAlmaLinux(Chronos) 上に GitHub Actions の self-hosted runner を配置し、`runs-on: self-hosted` のジョブをすべて AlmaLinux(Chronos) で処理する。
 
 - runner 配置ディレクトリ例: `/home/chronos/actions-runner`
 
@@ -69,13 +69,14 @@ DevOps-Studio は、個人開発および小規模チーム向けの 「自宅�
   - `sudo ./svc.sh install`
   - `sudo ./svc.sh start`
 
-- ラベル運用: - 現時点ではデフォルトの `self-hosted, Linux, X64` のみ
-  - 将来的に `chronos`, `gpu`, `build` などを追加する余地を残す
+- ラベル運用:
+  - 現時点ではデフォルトの `self-hosted, Linux, X64` のみ。
+  - 将来的に `chronos`, `gpu`, `build` などを追加する余地を残す。
 
 self-hosted runner により、以下が可能になる:
-  - GitHub 上のワークフローを **LAN 内のサーバーだけ**で実行
-  - Docker Compose を直接 Chronos 上で叩いてデプロイ
-  - 公開用サーバーと CI 実行環境を同一マシンに集約（個人開発にとって運用コスト最小）
+  - GitHub 上のワークフローを **LAN 内のサーバーだけ**で実行。
+  - Docker Compose を直接 Chronos 上で叩いてデプロイ。
+  - 公開用サーバーと CI 実行環境を同一マシンに集約（個人開発にとって運用コスト最小）。
   
 ---
 
@@ -102,7 +103,7 @@ self-hosted runner により、以下が可能になる:
       - `templates/docker-compose.webapp.yml`
       - `templates/docker-compose.db.yml`
       - `templates/docker-compose.proxy.yml`
-    をベースに構成する
+    をベースに構成する。
   - AlmaLinux（Chronos） 上のデプロイ先:
     - `/home/chronos/apps/<app-name>`
   
@@ -190,8 +191,8 @@ self-hosted runner により、以下が可能になる:
   
 ### 8.3 CD (Continuous Delivery/Deployment)
   - トリガー:
-     - **Phase1**: main push をデプロイトリガーとする（タグは記録用途）
-     - **Phase2**: タグ push をデプロイトリガーに移行する（main pushではデプロイしない）
+     - **Phase1**: main push をデプロイトリガーとする（タグは記録用途）。
+     - **Phase2**: タグ push をデプロイトリガーに移行する（main pushではデプロイしない）。
        - 流れ:
         **方式A（推奨/現状）**
          1. GitHub Actions（self-hosted runner）が AlmaLinux 上でリポジトリを checkout
@@ -223,16 +224,16 @@ self-hosted runner により、以下が可能になる:
  - 重い検討用:
     - **gpt-oss-20b**、**gpt-oss-120b**
 
- - 必要に応じて gpt-oss-120b を Windows で利用
+ - 必要に応じて gpt-oss-120b を Windows で利用。
 
- - 同一モデルでのレビューは行わずモデルによって役割を切り分ける
+ - 同一モデルでのレビューは行わずモデルによって役割を切り分ける。
  
 ### 9.3 典型的な利用パターン
 - `llm-dev-jp-fast`:
-  - 仕様整理、タスク分解、型設計レビュー、Playwright テストケース生成
+  - 仕様整理、タスク分解、型設計レビュー、Playwright テストケース生成。
 
 - `llm-dev-deep`:
-  - アーキテクチャの検討、リファクタ計画、障害対応の原因分析サポート
+  - アーキテクチャの検討、リファクタ計画、障害対応の原因分析サポート。
   
 ---
 
@@ -259,8 +260,8 @@ self-hosted runner により、以下が可能になる:
   - `CHRONOS_SSH_HOST`
 
 - アプリごとの API キー類
-  - **方式A（推奨/現状）**: self-hosted runner が Chronos 上で実行し、Chronos ローカルで docker compose を叩く（SSH不要）
-  - **方式B（代替）**: GitHub-hosted runner 等から Chronos へ SSH 接続してデプロイする（SSH鍵が必要）
+  - **方式A（推奨/現状）**: self-hosted runner が Chronos 上で実行し、Chronos ローカルで docker compose を叩く（SSH不要）。
+  - **方式B（代替）**: GitHub-hosted runner 等から Chronos へ SSH 接続してデプロイする（SSH鍵が必要）。
 - AlmaLinux 側では `.env` にアプリ設定を集約し、 `.env` 自体は Git 管理しない。
 
 ---
