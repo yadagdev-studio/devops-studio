@@ -8,33 +8,42 @@ on:
 
 jobs:
   deploy:
-    runs-on: self-hosted
+    runs-on: [self-hosted, Linux, X64]
 
-    # 各アプリごとに /home/chronos/apps/<app-name> に合わせて修正する
-    defaults:
-      run:
-        working-directory: /home/chronos/apps/YOUR_APP_NAME
+    env:
+      # 各アプリごとに必ず書き換える（テンプレ置換ポイント）
+      APP_DIR: /home/chronos/apps/YOUR_APP_NAME
 
     steps:
-      - name: Checkout
+      - name: Checkout (to workspace)
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
-      - name: Copy application files into deploy directory
+      - name: Sync repository to deploy directory
         run: |
-          # ここでは "このリポジトリ自身が /home/chronos/apps/YOUR_APP_NAME にチェックアウトされている" 前提
-          # もし別構成にするなら適宜調整する
-          ls -la
+          set -euo pipefail
+          mkdir -p "${APP_DIR}"
 
-      - name: Pull latest images (optional)
-        run: |
-          if [ -f docker-compose.yml ]; then
-            docker compose pull || true
+          if command -v rsync >/dev/null 2>&1; then
+            rsync -a --delete \
+              --exclude ".git" \
+              --exclude ".github" \
+              "./" "${APP_DIR}/"
+          else
+            # rsync が無い場合のフォールバック（deleteはしない）
+            cp -a ./ "${APP_DIR}/"
           fi
 
-      - name: Build & Start services
+      - name: Deploy (docker compose up)
         run: |
-          if [ -f docker-compose.yml ]; then
+          set -euo pipefail
+          cd "${APP_DIR}"
+
+          if [ -f docker-compose.yml ] || [ -f docker-compose.yaml ]; then
+            docker compose pull || true
             docker compose up -d --build
           else
-            echo "docker-compose.yml not found, skip"
+            echo "docker-compose.yml(.yaml) not found in ${APP_DIR}"
+            exit 1
           fi

@@ -12,17 +12,16 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
 
-    ports:
-      # 開発時だけホスト公開したい場合に利用（本番ではコメントアウト推奨）
-      # - "${DB_PORT:-5432}:5432"
+    expose:
       - "5432"
 
     networks:
-      - app-network
+      - devops-edge
 
 networks:
-  app-network:
-    driver: bridge
+  devops-edge:
+    external: true
+    name: devops-edge
 
 volumes:
   db-data:
