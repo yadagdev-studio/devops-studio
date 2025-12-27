@@ -39,6 +39,24 @@ DevOps-Studio は、**自宅マルチマシン + GitHub + ローカルLLM** を�
 - [RESTORE](infra/runbooks/RESTORE.md)
 - [SECURITY](infra/runbooks/SECURITY.md)
 
+Change Gates（変更種別ゲート / 提出前チェック）
+
+### Infra / Ops
+- [Nginx（devops-proxy）](infra/checklists/nginx-change.md)
+- [firewalld](infra/checklists/firewalld-change.md)
+- [certbot / deploy-hook](infra/checklists/certbot-change.md)
+- [backup（systemd timer + script）](infra/checklists/backup-change.md)
+- [systemd（service/timer全般）](infra/checklists/systemd-change.md)
+- [docker compose（全般）](infra/checklists/docker-compose-change.md)
+- [security headers / deny_sensitive](infra/checklists/security-headers-change.md)
+
+### Observability / CI
+- [internal monitor（docker/monitor）](infra/checklists/monitor-change.md)
+- [GitHub Actions / self-hosted runner](infra/checklists/github-actions-runner-change.md)
+
+### Domain
+- [DNS / domain](infra/checklists/dns-domain-change.md)
+
 ---
 
 ## ディレクトリ構造（proxy）
