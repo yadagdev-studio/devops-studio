@@ -66,6 +66,17 @@ sudo openssl x509 -in /etc/letsencrypt/live/yadag-studio.duckdns.org/fullchain.p
 
 ---
 
-## 7. ロールバック（最低限）
-- hook の変更を戻す。
-- nginx reload ルートが死んでいないこと（nginx -t が通る）を確認。
+## 7. ロールバック（例）
+1) hook の変更を戻す。（Git側で revert して Chronos で pull）
+2) nginx reload ルートが死んでいないことを確認。
+```
+# nginx 構文チェック
+cd devops-studio/
+docker compose -f docker/proxy/docker-compose.proxy.yaml exec -T devops-proxy nginx -t
+
+# reload スクリプトの健全性（構文）
+sudo bash -n /usr/local/bin/reload-devops-proxy.sh
+
+# （可能なら）reload 実行ログの確認
+sudo journalctl -t certbot-hook --since "1 hour ago" --no-pager || true
+```
