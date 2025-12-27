@@ -65,6 +65,34 @@ SSH到達の最低確認（LAN内から実施）:
 
 ---
 
-## 6. ロールバック（最低限）
-- [ ] 変更した rule/service を戻す → --reload
-- [ ] 変更前スナップショットと一致するまで戻す
+## 6. ロールバック（例）
+1) 変更した service / rich rule を取り消す（permanent）
+2) reload
+3) 変更前スナップショットと一致するまで確認
+
+例: public zone から http/https を外してしまった。 → 戻す。
+```
+sudo firewall-cmd --permanent --zone=public --add-service=http
+sudo firewall-cmd --permanent --zone=public --add-service=https
+sudo firewall-cmd --reload
+```
+
+例: 誤ってSSHを開放してしまった。 → “LANのみ許可”へ戻す。
+```
+# まず、意図しない ssh 許可（service/port）を消す（必要なら）
+sudo firewall-cmd --permanent --zone=public --remove-service=ssh || true
+
+# LANのみ許可のrich ruleを追加（無ければ）
+sudo firewall-cmd --permanent --zone=public \
+  --add-rich-rule='rule family="ipv4" source address="192.168.1.0/24" service name="ssh" accept'
+
+sudo firewall-cmd --reload
+```
+
+確認（スナップショット一致）:
+```
+sudo firewall-cmd --get-active-zones
+sudo firewall-cmd --zone=public --list-all
+sudo firewall-cmd --zone=public --list-rich-rules
+sudo ss -tulpen | egrep '(:22|:80|:443)\s'
+```
