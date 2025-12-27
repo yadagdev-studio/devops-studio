@@ -42,3 +42,40 @@ docker compose -f /home/chronos/workspace/AIUtilizationProject/devops-studio/doc
 
 NGなら:
 - 変更を戻す（ロールバック）か、修正コミットを作る。
+
+---
+
+## 3. ローカル疎通（Chronosからの確認）
+※ https://127.0.0.1 直叩きは証明書検証で落ちるので --resolve を使う。
+```
+curl -fsS --resolve yadag-studio.duckdns.org:443:127.0.0.1 https://yadag-studio.duckdns.org/healthz
+curl -fsS --resolve yadag-studio.duckdns.org:443:127.0.0.1 https://yadag-studio.duckdns.org/_internal/healthz
+curl -fsS --resolve yadag-studio.duckdns.org:443:127.0.0.1 https://yadag-studio.duckdns.org/_internal/upstream/delay-api
+```
+
+deny_sensitive 回帰（404になること）:
+```
+test "$(curl -s -o /dev/null -w '%{http_code}' --resolve yadag-studio.duckdns.org:443:127.0.0.1 https://yadag-studio.duckdns.org/.env)" = "404"
+test "$(curl -s -o /dev/null -w '%{http_code}' --resolve yadag-studio.duckdns.org:443:127.0.0.1 https://yadag-studio.duckdns.org/.git/config)" = "404"
+```
+
+---
+
+## 4. 外部到達（external-smoke）
+- [ ] .github/workflows/external-smoke.yml を手動実行して Green を確認
+- [ ] 以後は cron で定期実行される（ただし多少遅延することがある）
+
+---
+
+## 5. 反映確認（監視）
+- [ ] UptimeRobot（外形監視）が落ちていない
+- [ ] 内部監視 devops-monitor が FAILED を出していない
+- [ ] もしFAILEDが出たら、直前の変更を疑う（ロールバック検討）
+
+---
+
+## 6. ロールバック（最低限）
+前コミットに戻して反映（Windowsで revert 推奨）:
+- [ ] revertコミットを作成して push
+- [ ] Chronos で pull
+- [ ] nginx -t と --resolve curl を再実行
