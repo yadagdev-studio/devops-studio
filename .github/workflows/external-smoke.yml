@@ -11,7 +11,7 @@ jobs:
     timeout-minutes: 5
 
     env:
-      TARGET_HOST: "YOUR_PUBLIC_DOMAIN_HERE"
+      TARGET_HOST: yadag-studio.duckdns.org
 
     steps:
       - name: Install tools
@@ -22,27 +22,27 @@ jobs:
       - name: HTTPS health checks
         run: |
           set -euo pipefail
-          curl -fsS "https://yadag-studio.duckdns.org/healthz" >/dev/null
-          curl -fsS "https://yadag-studio.duckdns.org/_internal/healthz" >/dev/null
-          curl -fsS "https://yadag-studio.duckdns.org/_internal/upstream/delay-api" >/dev/null
+          curl -fsS "https://${TARGET_HOST}/healthz" >/dev/null
+          curl -fsS "https://${TARGET_HOST}/_internal/healthz" >/dev/null
+          curl -fsS "https://${TARGET_HOST}/_internal/upstream/delay-api" >/dev/null
 
       - name: deny_sensitive regression checks
         run: |
           set -euo pipefail
-          code_env="$(curl -s -o /dev/null -w '%{http_code}' "https://yadag-studio.duckdns.org/.env")"
-          code_git="$(curl -s -o /dev/null -w '%{http_code}' "https://yadag-studio.duckdns.org/.git/config")"
+          code_env="$(curl -s -o /dev/null -w '%{http_code}' "https://${TARGET_HOST}/.env")"
+          code_git="$(curl -s -o /dev/null -w '%{http_code}' "https://${TARGET_HOST}/.git/config")"
           test "$code_env" = "404"
           test "$code_git" = "404"
 
       - name: HSTS header check (basic)
         run: |
           set -euo pipefail
-          curl -sSI "yadag-studio.duckdns.org/healthz" | tr -d '\r' | grep -i '^strict-transport-security:' >/dev/null
+          curl -sSI "https://${TARGET_HOST}/healthz" | tr -d '\r' | grep -i '^strict-transport-security:' >/dev/null
 
       - name: SSH port must be CLOSED
         run: |
           set -euo pipefail
-          if nc -vz -w 3 "yadag-studio.duckdns.org" 22; then
+          if nc -vz -w 3 "${TARGET_HOST}" 22; then
             echo "ERROR: port 22 seems OPEN from internet"
             exit 1
           fi
