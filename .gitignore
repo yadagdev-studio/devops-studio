@@ -5,3 +5,8 @@ dist/
 **/.env
 docker/monitor/state/
 docker/monitor/monitor.env
+
+# --- Local-only LLM ops (DO NOT COMMIT) ---
+infra/llm/runs/
+infra/llm/logs/
+infra/llm/private/
