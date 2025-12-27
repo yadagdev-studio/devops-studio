@@ -34,10 +34,10 @@ DevOps-Studio は、**自宅マルチマシン + GitHub + ローカルLLM** を�
 - [Project Charter](infra/PROJECT_CHARTER.md)
 
 運用Runbook（AlmaLinux運用の手順）
-- [Monitoring](RUNBOOK.monitor.md)
-- [Backup](RUNBOOK.backup.md)
-- [Restore](RUNBOOK.restore.md)
-- [Security](RUNBOOK.security.md)
+- [MONITOR](infra/runbooks/MONITOR.md)
+- [BACKUP](infra/runbooks/BACKUP.md)
+- [RESTORE](infra/runbooks/RESTORE.md)
+- [SECURITY](infra/runbooks/SECURITY.md)
 
 ---
 
@@ -166,11 +166,11 @@ cd devops-studio/docker/monitor
 docker compose -f docker-compose.monitor.yaml logs -f --tail=200 devops-monitor
 ```
 
-## Backup / Restore / Security（運用手順はRunbookへ）
-[Backup](RUNBOOK.backup.md)
-[Restore](RUNBOOK.restore.md)
-[Security](RUNBOOK.security.md)
-[Monitoring](RUNBOOK.monitor.md)
+## Backup / Restore / Security / Monitoring（運用手順はRunbookへ）
+- [MONITOR](infra/runbooks/MONITOR.md)
+- [BACKUP](infra/runbooks/BACKUP.md)
+- [RESTORE](infra/runbooks/RESTORE.md)
+- [SECURITY](infra/runbooks/SECURITY.md)
 
 ## トラブルシュート（最低限）
 ### proxyの状態確認
