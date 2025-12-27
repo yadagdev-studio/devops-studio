@@ -30,6 +30,6 @@
 
 - [ ] Chronos: pull（ff-only）
 - [ ] Chronos: チェックリスト（infra/checklists/*）に該当があれば実施
-- [ ] external-smoke: 手動実行で Green（/healthz OK, deny_sensitive 404, HSTSあり, port22 closed）
+- [ ] external-smoke: 手動実行で Green（/healthz OK, deny_sensitive 404, HSTSあり, X-Content-Type-Options=nosniff, X-Frame-Optionsあり, Referrer-Policyあり, port22 closed）
 - [ ] UptimeRobot: 継続成功を確認（反映後しばらく）
 - [ ] devops-monitor: FAILED が出ていないことを確認（反映後しばらく）
