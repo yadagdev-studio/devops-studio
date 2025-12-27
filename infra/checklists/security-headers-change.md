@@ -21,15 +21,32 @@
 ---
 
 ## 1. 変更前スナップショット（Chronos / 変更前）
-（Gitに入れない。logsに貼ればOK）
+（巨大だが “有効設定” の事実が一番強いので、毎回必ず採取する。保存先は /tmp でOK）
 ```
 cd devops-studio/
 
 # nginx構文が通っていること（現状確認）
 docker compose -f docker/proxy/docker-compose.proxy.yaml exec -T devops-proxy nginx -t
 
-# 参考: 有効設定のダンプ（量が多いので必要時のみ）
-# docker compose -f ... exec -T devops-proxy nginx -T > /tmp/nginx-T.before.txt
+# 有効設定のダンプ（必須）
+# 日付と場所の指定
+TS="$(date +%Y%m%d-%H%M%S)"
+OUT="/tmp/nginx-effective-${TS}.txt"
+
+docker compose -f docker/proxy/docker-compose.proxy.yaml exec -T devops-proxy nginx -T > "${OUT}"
+
+# 目視しやすい最小確認（例：deny_sensitive と HSTS の存在）
+grep -nE 'deny_sensitive|Strict-Transport-Security|limit_req|limit_conn' "${OUT}" | head -n 50 || true
+
+echo "saved: ${OUT}"
+```
+
+※問題が起きたときだけ、Git管理しない場所へ退避する（任意）
+```
+# 例：infra/llm/logs/ など（.gitignore対象）
+# cd devops-studio/
+# mkdir -p infra/llm/logs/nginx-effective
+# cp "${OUT}" /home/chronos/workspace/AIUtilizationProject/devops-studio/infra/llm/logs/nginx-effective/
 ```
 
 ---
