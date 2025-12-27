@@ -47,3 +47,18 @@ jobs:
             exit 1
           fi
           echo "OK: port 22 is not reachable"
+
+      - name: Check security headers
+        run: |
+          set -euo pipefail
+          URL="https://${TARGET_HOST}/healthz"
+
+          headers="$(curl -sSI "$URL" | tr -d '\r')"
+          echo "$headers"
+          
+          echo "$headers" | grep -i '^strict-transport-security:' >/dev/null
+          echo "$headers" | grep -i '^x-content-type-options:\s*nosniff' >/dev/null
+          echo "$headers" | grep -i '^x-frame-options:' >/dev/null
+          echo "$headers" | grep -i '^referrer-policy:' >/dev/null
+
+          echo "OK: required security headers present"
