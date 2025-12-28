@@ -17,5 +17,5 @@ infra/llm/private/
 !.continue/rules/
 !.continue/rules/**
 
-!.continue/prompt/
-!.continue/prompt/**
+!.continue/prompts/
+!.continue/prompts/**
